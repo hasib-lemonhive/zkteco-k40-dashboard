@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Attendance</h1>
+        <p>
+            {% if selected_from_date and selected_to_date %}
+                Showing attendance {% if selected_user_id %}for User {{ selected_user_id }} {% endif %}from {{ selected_from_date }} to {{ selected_to_date }} ({{ total }} daily records found)
+            {% elif selected_from_date %}
+                Showing attendance {% if selected_user_id %}for User {{ selected_user_id }} {% endif %}from {{ selected_from_date }} onwards ({{ total }} daily records found)
+            {% elif selected_to_date %}
+                Showing attendance {% if selected_user_id %}for User {{ selected_user_id }} {% endif %}up to {{ selected_to_date }} ({{ total }} daily records found)
+            {% elif selected_user_id %}
+                Showing daily attendance for User {{ selected_user_id }} ({{ total }} daily records found)
+            {% else %}
+                {{ total }} total daily attendance records
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <form method="GET" action="{{ url_for('attendance') }}" class="filter-bar">
+        <div class="filter-group">
+            <label for="user-select">Filter User:</label>
+            <select name="user_id" id="user-select" onchange="this.form.submit()">
+                <option value="">-- All Users --</option>
+                {% for u in users_list %}
+                    <option value="{{ u.user_id }}" {% if u.user_id == selected_user_id %}selected{% endif %}>
+                        User {{ u.user_id }} - {{ u.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="from-date">From:</label>
+            <input type="date" name="from_date" id="from-date" value="{{ selected_from_date }}" onchange="this.form.submit()">
+        </div>
+
+        <div class="filter-group">
+            <label for="to-date">To (optional):</label>
+            <input type="date" name="to_date" id="to-date" value="{{ selected_to_date }}" onchange="this.form.submit()">
+        </div>
+
+        {% if selected_user_id or selected_from_date or selected_to_date %}
+            <a href="{{ url_for('attendance') }}" class="btn-clear">Clear Filter</a>
+        {% endif %}
+    </form>
+
+    <div class="export-bar">
+        <div class="export-label">Quick Export:</div>
+        <div class="export-buttons">
+            <a href="{{ url_for('export_excel', user_id=selected_user_id, from_date=selected_from_date, to_date=selected_to_date) }}" class="btn-export">
+                Export Excel {% if not selected_user_id and not selected_from_date and not selected_to_date %}(Latest Month){% else %}(Filtered){% endif %}
+            </a>
+            <span class="divider">|</span>
+            <a href="{{ url_for('export_excel', preset='last_week', user_id=selected_user_id) }}" class="btn-preset">Last Week</a>
+            <a href="{{ url_for('export_excel', preset='last_month', user_id=selected_user_id) }}" class="btn-preset">Last Month</a>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>In Time (First)</th>
+                    <th>Out Time (Last)</th>
+                    <th>Total Hours</th>
+                    <th>Total Punches</th>
+                    <th>All Punches</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td><strong>{{ row.date }}</strong></td>
+                    <td>{{ row.name }}</td>
+                    <td>
+                        <span class="time-tag in-time">{{ row.in_time }}</span>
+                    </td>
+                    <td>
+                        {% if row.total_punches > 1 %}
+                            <span class="time-tag out-time">{{ row.out_time }}</span>
+                        {% else %}
+                            <span class="single-punch">- (Single Punch)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="{% if row.total_hours != 'N/A' %}hours-tag{% else %}single-punch{% endif %}">
+                            {{ row.total_hours }}
+                        </span>
+                    </td>
+                    <td><span class="badge">{{ row.total_punches }}</span></td>
+                    <td class="punch-list">{{ row.all_punches }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="empty">No attendance records found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "_pagination.html" %}
+</div>
+{% endblock %}

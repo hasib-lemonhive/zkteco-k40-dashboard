@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Users</h1>
+        <p>{{ total }} users</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Privilege</th>
+                    <th>Created</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td>{{ row.user_id }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.privilege }}</td>
+                    <td>{{ row.created_at }}</td>
+                    <td>{{ row.updated_at }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="empty">No users found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "_pagination.html" %}
+</div>
+{% endblock %}

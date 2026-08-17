@@ -1,0 +1,17 @@
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="{{ url_for(request.endpoint, page=page - 1, user_id=selected_user_id if selected_user_id else None, from_date=selected_from_date if selected_from_date else None, to_date=selected_to_date if selected_to_date else None) }}">← Previous</a>
+    {% else %}
+        <span class="disabled">← Previous</span>
+    {% endif %}
+
+    <span>Page {{ page }} of {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+        <a href="{{ url_for(request.endpoint, page=page + 1, user_id=selected_user_id if selected_user_id else None, from_date=selected_from_date if selected_from_date else None, to_date=selected_to_date if selected_to_date else None) }}">Next →</a>
+    {% else %}
+        <span class="disabled">Next →</span>
+    {% endif %}
+</div>
+{% endif %}
