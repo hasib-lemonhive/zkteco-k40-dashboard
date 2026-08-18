@@ -20,6 +20,48 @@
     </div>
 </div>
 
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span class="kpi-label">Total Staff</span>
+            <span class="kpi-icon">👥</span>
+        </div>
+        <div class="kpi-value">{{ analytics.total_staff }}</div>
+        <div class="kpi-sub">Registered Employees</div>
+    </div>
+
+    <div class="kpi-card kpi-card-success">
+        <div class="kpi-header">
+            <span class="kpi-label">Present ({{ analytics.target_date }})</span>
+            <span class="kpi-icon">🟢</span>
+        </div>
+        <div class="kpi-value">{{ analytics.present_count }}</div>
+        <div class="kpi-sub">{{ ((analytics.present_count / (analytics.total_staff or 1)) * 100)|round|int }}% Attendance Rate</div>
+    </div>
+
+    <div class="kpi-card kpi-card-danger">
+        <div class="kpi-header">
+            <span class="kpi-label">Absent ({{ analytics.target_date }})</span>
+            <span class="kpi-icon">🔴</span>
+        </div>
+        <div class="kpi-value">{{ analytics.absent_count }}</div>
+        <div class="kpi-sub">
+            {% if analytics.absent_count > 0 %}
+                <details class="absent-details">
+                    <summary>View {{ analytics.absent_count }} absent staff</summary>
+                    <div class="absent-list">
+                        {% for u in analytics.absent_users %}
+                            <span class="absent-tag">{{ u.name }}</span>
+                        {% endfor %}
+                    </div>
+                </details>
+            {% else %}
+                All staff present!
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <form method="GET" action="{{ url_for('attendance') }}" class="filter-bar">
         <div class="filter-group">
@@ -53,7 +95,7 @@
         <div class="export-label">Quick Export:</div>
         <div class="export-buttons">
             <a href="{{ url_for('export_excel', user_id=selected_user_id, from_date=selected_from_date, to_date=selected_to_date) }}" class="btn-export">
-                Export Excel {% if not selected_user_id and not selected_from_date and not selected_to_date %}(Latest Month){% else %}(Filtered){% endif %}
+                📥 Export Excel {% if not selected_user_id and not selected_from_date and not selected_to_date %}(Latest Month){% else %}(Filtered){% endif %}
             </a>
             <span class="divider">|</span>
             <a href="{{ url_for('export_excel', preset='last_week', user_id=selected_user_id) }}" class="btn-preset">Last Week</a>

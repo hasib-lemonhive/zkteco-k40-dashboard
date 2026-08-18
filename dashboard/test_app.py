@@ -29,6 +29,18 @@ class DashboardTestCase(unittest.TestCase):
         self.assertIn("In Time (First)", html)
         self.assertIn("Out Time (Last)", html)
         self.assertIn("Total Hours", html)
+        self.assertNotIn("<th>Status</th>", html)
+
+    def test_kpi_analytics_cards(self):
+        """Test that retained KPI cards (Total Staff, Present, Absent) are rendered."""
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Total Staff", html)
+        self.assertIn("Present", html)
+        self.assertIn("Absent", html)
+        self.assertNotIn("Late Arrivals", html)
+        self.assertNotIn("Avg. Duration", html)
 
     def test_total_hours_calculation(self):
         """Test total hours calculation and N/A fallback for single punch."""
@@ -81,13 +93,14 @@ class DashboardTestCase(unittest.TestCase):
         self.assertTrue(len(response.data) > 1000)
 
     def test_export_excel_total_hours_header_and_data(self):
-        """Test that exported Excel spreadsheet includes 'Total Hours' column."""
+        """Test that exported Excel spreadsheet includes 'Total Hours' and no 'Status' column."""
         response = self.client.get("/export?user_id=1&from_date=2026-08-11&to_date=2026-08-11")
         self.assertEqual(response.status_code, 200)
         wb = openpyxl.load_workbook(io.BytesIO(response.data))
         ws = wb.active
         headers = [cell for cell in next(ws.iter_rows(min_row=1, max_row=1, values_only=True))]
         self.assertIn("Total Hours", headers)
+        self.assertNotIn("Status", headers)
         total_hours_index = headers.index("Total Hours")
         data_rows = [row for row in ws.iter_rows(min_row=2, values_only=True)]
         self.assertTrue(len(data_rows) > 0)

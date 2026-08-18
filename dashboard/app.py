@@ -53,11 +53,41 @@ def attendance():
 
     db = get_db()
 
-    # Fetch users for dropdown filter
-    users_list = db.execute(
+    # Fetch all registered users
+    all_users = db.execute(
         "SELECT user_id, name FROM users ORDER BY CAST(user_id AS INTEGER), user_id"
     ).fetchall()
 
+    # Determine KPI analytics target date (selected date or latest date in DB)
+    if selected_from_date and selected_to_date and selected_from_date == selected_to_date:
+        target_date = selected_from_date
+    elif selected_from_date and not selected_to_date:
+        target_date = selected_from_date
+    else:
+        latest_date_row = db.execute("SELECT MAX(DATE(timestamp)) FROM attendance").fetchone()
+        target_date = latest_date_row[0] if latest_date_row and latest_date_row[0] else datetime.now().strftime("%Y-%m-%d")
+
+    # Compute KPI analytics for target date
+    present_rows = db.execute(
+        "SELECT DISTINCT user_id FROM attendance WHERE DATE(timestamp) = ?",
+        (target_date,),
+    ).fetchall()
+    present_uids = set(r[0] for r in present_rows)
+
+    total_staff = len(all_users)
+    present_count = len(present_uids)
+    absent_count = max(0, total_staff - present_count)
+    absent_users = [dict(u) for u in all_users if u["user_id"] not in present_uids]
+
+    analytics = {
+        "target_date": target_date,
+        "total_staff": total_staff,
+        "present_count": present_count,
+        "absent_count": absent_count,
+        "absent_users": absent_users,
+    }
+
+    # Table filtering
     conditions = []
     params = []
 
@@ -112,10 +142,11 @@ def attendance():
     return render_template(
         "attendance.html",
         rows=rows,
-        users_list=users_list,
+        users_list=all_users,
         selected_user_id=selected_user_id,
         selected_from_date=selected_from_date,
         selected_to_date=selected_to_date,
+        analytics=analytics,
         page=page,
         per_page=per_page,
         total=total,
