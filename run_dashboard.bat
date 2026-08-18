@@ -1,8 +1,8 @@
 @echo off
-title ZKTeco Attendance Dashboard
+title ZKTeco Attendance Dashboard & Live Listener
 
 echo ===================================================
-echo   ZKTeco Attendance Dashboard & Device Sync
+echo   ZKTeco Attendance Dashboard & Live Listener
 echo ===================================================
 echo.
 
@@ -24,8 +24,8 @@ IF NOT EXIST ".venv" (
 echo [2/3] Checking requirements...
 call .venv\Scripts\pip.exe install -r requirements.txt --quiet
 
-echo [3/3] Syncing attendance data from K40 device...
-call .venv\Scripts\python.exe sync_k40.py
+echo [3/3] Starting Real-Time Live Listener...
+start "ZKTeco Live Listener" /min .venv\Scripts\python.exe sync_k40.py
 
 echo.
 echo Starting Attendance Dashboard...
