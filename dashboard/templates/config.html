@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Configuration & Maintenance</h1>
+        <p>Manage system settings, review database and device hardware stats, and clean up historical attendance records.</p>
+    </div>
+</div>
+
+<div class="kpi-grid">
+    <!-- Local Database Stats Card -->
+    <div class="kpi-card kpi-card-info">
+        <div class="kpi-header">
+            <span class="kpi-label">Local Database (attendance.db)</span>
+            <span class="kpi-icon">🗄️</span>
+        </div>
+        <div class="kpi-value">{{ "{:,}".format(local_attendance_count) }}</div>
+        <div class="kpi-sub">Total Attendance Records Preserved</div>
+        <div class="config-meta-list">
+            <div class="config-meta-item">
+                <span>Total Registered Users:</span>
+                <strong>{{ local_user_count }}</strong>
+            </div>
+            <div class="config-meta-item">
+                <span>Database File Size:</span>
+                <strong>{{ db_size_str }}</strong>
+            </div>
+            <div class="config-meta-note">
+                🛡️ <em>Local storage permanently preserves all data, even when cleared from the device.</em>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Hardware Stats Card -->
+    <div class="kpi-card {% if device_info.online %}kpi-card-success{% else %}kpi-card-danger{% endif %}">
+        <div class="kpi-header">
+            <span class="kpi-label">ZKTeco K40 Device</span>
+            <span class="kpi-icon">📟</span>
+        </div>
+        <div class="kpi-value">
+            {% if device_info.online %}
+                {{ "{:,}".format(device_info.records) }}
+            {% else %}
+                Offline
+            {% endif %}
+        </div>
+        <div class="kpi-sub">
+            {% if device_info.online %}
+                Logs in Device Memory ({{ ((device_info.records / device_info.records_cap) * 100)|round|int }}% full)
+            {% else %}
+                Cannot connect to {{ device_info.ip }}:{{ device_info.port }}
+            {% endif %}
+        </div>
+        <div class="config-meta-list">
+            <div class="config-meta-item">
+                <span>Device Status:</span>
+                <strong>
+                    {% if device_info.online %}
+                        <span class="device-badge online">🟢 Online</span>
+                    {% else %}
+                        <span class="device-badge offline">🔴 Offline</span>
+                    {% endif %}
+                </strong>
+            </div>
+            <div class="config-meta-item">
+                <span>Device Capacity:</span>
+                <strong>{{ "{:,}".format(device_info.records_cap) }} max logs</strong>
+            </div>
+            <div class="config-meta-item">
+                <span>Device Users / Fingerprints:</span>
+                <strong>
+                    {% if device_info.online %}
+                        {{ device_info.users }} users / {{ device_info.fingers }} fingers
+                    {% else %}
+                        -
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deletion & Cleanup Section -->
+<div class="card danger-card">
+    <div class="card-header-danger">
+        <h2>⚠️ Delete Attendance Records</h2>
+        <p>Selectively remove historical attendance records from your local database by Month or by Year.</p>
+    </div>
+
+    <div class="delete-forms-grid">
+        <!-- Delete by Month Form -->
+        <div class="delete-box">
+            <h3>Delete by Month</h3>
+            <p>Permanently remove records for a specific calendar month.</p>
+            <form method="POST" action="{{ url_for('delete_attendance') }}" onsubmit="return confirmDelete(this, 'month');">
+                <input type="hidden" name="delete_type" value="month">
+                <div class="form-group">
+                    <label for="month-select">Select Month to Delete:</label>
+                    <select name="target_value" id="month-select" required>
+                        <option value="">-- Choose a Month --</option>
+                        {% for m in months_breakdown %}
+                            <option value="{{ m.month_str }}" data-count="{{ m.count }}">
+                                {{ m.month_str }} — ({{ "{:,}".format(m.count) }} records)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-danger">🗑️ Delete Selected Month</button>
+            </form>
+        </div>
+
+        <!-- Delete by Year Form -->
+        <div class="delete-box">
+            <h3>Delete by Year</h3>
+            <p>Permanently remove all attendance records for an entire year.</p>
+            <form method="POST" action="{{ url_for('delete_attendance') }}" onsubmit="return confirmDelete(this, 'year');">
+                <input type="hidden" name="delete_type" value="year">
+                <div class="form-group">
+                    <label for="year-select">Select Year to Delete:</label>
+                    <select name="target_value" id="year-select" required>
+                        <option value="">-- Choose a Year --</option>
+                        {% for y in years_breakdown %}
+                            <option value="{{ y.year_str }}" data-count="{{ y.count }}">
+                                Year {{ y.year_str }} — ({{ "{:,}".format(y.count) }} records)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn-danger">🗑️ Delete Entire Year</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Historical Breakdown Table -->
+<div class="card">
+    <div class="card-title-bar">
+        <h2>📅 Historical Attendance Storage Breakdown</h2>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Month / Period</th>
+                    <th>Records Count</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for m in months_breakdown %}
+                <tr>
+                    <td><strong>{{ m.month_str }}</strong></td>
+                    <td>
+                        <span class="badge">{{ "{:,}".format(m.count) }} records</span>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('delete_attendance') }}" style="display:inline;" onsubmit="return confirm('⚠️ CONFIRMATION:\n\nAre you sure you want to permanently delete all {{ '{:,}'.format(m.count) }} records for {{ m.month_str }}?\n\nThis action CANNOT be undone.');">
+                            <input type="hidden" name="delete_type" value="month">
+                            <input type="hidden" name="target_value" value="{{ m.month_str }}">
+                            <button type="submit" class="btn-table-delete">Delete {{ m.month_str }}</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3" class="empty">No attendance records stored in the database.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function confirmDelete(form, type) {
+    var select = form.querySelector('select');
+    var selectedOption = select.options[select.selectedIndex];
+    
+    if (!selectedOption || !selectedOption.value) {
+        alert("Please select a valid " + type + " to delete.");
+        return false;
+    }
+    
+    var val = selectedOption.value;
+    var count = selectedOption.getAttribute('data-count') || '';
+    
+    var msg = "⚠️ PERMANENT DELETION WARNING:\n\n" +
+              "Are you sure you want to permanently delete all attendance records for:\n" +
+              (type === 'month' ? "Month: " : "Year: ") + val + 
+              (count ? " (" + count + " records)" : "") + "\n\n" +
+              "This action cannot be undone. Do you wish to proceed?";
+              
+    return confirm(msg);
+}
+</script>
+{% endblock %}

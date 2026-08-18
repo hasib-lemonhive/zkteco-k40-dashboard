@@ -417,3 +417,183 @@ tbody tr:hover {
     font-size: 11px;
     font-weight: 500;
 }
+
+/* =========================
+   Flash Alerts
+   ========================= */
+.flash-container {
+    margin-bottom: 20px;
+}
+
+.flash-alert {
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.flash-success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.flash-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* =========================
+   Configuration Page
+   ========================= */
+.config-meta-list {
+    margin-top: 14px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.config-meta-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #475569;
+}
+
+.config-meta-item strong {
+    color: #0f172a;
+}
+
+.config-meta-note {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #0284c7;
+    background: #f0f9ff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #e0f2fe;
+}
+
+.device-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.device-badge.online {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.device-badge.offline {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.danger-card {
+    border-left: 4px solid #ef4444;
+}
+
+.card-header-danger h2 {
+    font-size: 18px;
+    color: #991b1b;
+    margin-bottom: 4px;
+}
+
+.card-header-danger p {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 16px;
+}
+
+.delete-forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.delete-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 16px 18px;
+}
+
+.delete-box h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #991b1b;
+    margin-bottom: 4px;
+}
+
+.delete-box p {
+    font-size: 12px;
+    color: #7f1d1d;
+    margin-bottom: 14px;
+}
+
+.delete-box .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.delete-box label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.delete-box select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    font-size: 13px;
+}
+
+.btn-danger {
+    padding: 8px 16px;
+    background: #ef4444;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-table-delete {
+    padding: 4px 10px;
+    background: #fff;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-table-delete:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+
+.card-title-bar h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 16px 20px 0;
+}

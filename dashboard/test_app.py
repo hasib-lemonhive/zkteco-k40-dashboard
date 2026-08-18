@@ -1,4 +1,5 @@
 import io
+import sqlite3
 import sys
 from pathlib import Path
 import unittest
@@ -8,7 +9,7 @@ import openpyxl
 # Ensure dashboard directory is in path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from app import app
+from app import app, DB_FILE
 
 
 class DashboardTestCase(unittest.TestCase):
@@ -30,6 +31,80 @@ class DashboardTestCase(unittest.TestCase):
         self.assertIn("Out Time (Last)", html)
         self.assertIn("Total Hours", html)
         self.assertNotIn("<th>Status</th>", html)
+
+    def test_navigation_header_links(self):
+        """Test that header includes Attendance, Users, and Configuration links."""
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('href="/"', html)
+        self.assertIn('href="/users"', html)
+        self.assertIn('href="/config"', html)
+
+    def test_config_page_loads(self):
+        """Test that Configuration page loads and displays stats and maintenance forms."""
+        response = self.client.get("/config")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Configuration", html)
+        self.assertIn("Maintenance", html)
+        self.assertIn("Local Database", html)
+        self.assertIn("ZKTeco K40 Device", html)
+        self.assertIn("Delete Attendance Records", html)
+        self.assertIn("Delete by Month", html)
+        self.assertIn("Delete by Year", html)
+
+    def test_delete_attendance_by_month(self):
+        """Test deleting attendance records by month with confirmation action."""
+        # Insert a temporary test record for 1999-01
+        db = sqlite3.connect(DB_FILE)
+        db.execute(
+            "INSERT OR IGNORE INTO attendance (user_id, timestamp, status, punch) VALUES ('1', '1999-01-15T09:00:00', 1, 0)"
+        )
+        db.commit()
+        db.close()
+
+        response = self.client.post(
+            "/config/delete-attendance",
+            data={"delete_type": "month", "target_value": "1999-01"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Successfully deleted", html)
+        self.assertIn("1999-01", html)
+
+        # Verify record is gone
+        db = sqlite3.connect(DB_FILE)
+        count = db.execute("SELECT COUNT(*) FROM attendance WHERE strftime('%Y-%m', timestamp) = '1999-01'").fetchone()[0]
+        db.close()
+        self.assertEqual(count, 0)
+
+    def test_delete_attendance_by_year(self):
+        """Test deleting attendance records by year."""
+        # Insert a temporary test record for 1998
+        db = sqlite3.connect(DB_FILE)
+        db.execute(
+            "INSERT OR IGNORE INTO attendance (user_id, timestamp, status, punch) VALUES ('1', '1998-05-20T10:00:00', 1, 0)"
+        )
+        db.commit()
+        db.close()
+
+        response = self.client.post(
+            "/config/delete-attendance",
+            data={"delete_type": "year", "target_value": "1998"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("Successfully deleted", html)
+        self.assertIn("1998", html)
+
+        # Verify record is gone
+        db = sqlite3.connect(DB_FILE)
+        count = db.execute("SELECT COUNT(*) FROM attendance WHERE strftime('%Y', timestamp) = '1998'").fetchone()[0]
+        db.close()
+        self.assertEqual(count, 0)
 
     def test_kpi_analytics_cards(self):
         """Test that retained KPI cards (Total Staff, Present, Absent) are rendered."""
