@@ -1,28 +1,7 @@
-# ZKTeco SQLite Dashboard
+# ZKTeco Flask Dashboard
 
-A simple Flask dashboard for the `attendance.db` created by the K40 sync script.
+This directory contains the Flask web application for the ZKTeco K40 attendance management system.
 
-## Setup
+For full system documentation, setup instructions, hardware configuration, and developer guides, refer to the project root documentation:
 
-Place this project in the same directory as `attendance.db`.
-
-Create/activate your virtual environment, then from the root `zkteco` directory:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run:
-
-```bash
-python app.py
-```
-
-Open:
-
-http://localhost:5000
-
-The dashboard has:
-
-- `/` — attendance with user name and pagination
-- `/users` — users with pagination
+👉 **[Root Project README.md](../README.md)**
